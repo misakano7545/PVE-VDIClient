@@ -131,23 +131,30 @@ class PackageGenerator:
 		return args
 
 	def _embed_language_transforms(self, wixdir):
+		light = os.path.join(wixdir, 'light')
+		torch = os.path.join(wixdir, 'torch')
 		for language in self.languages[1:]:
 			wxl_path = self._wxl_path(language['culture'])
 			if not os.path.isfile(wxl_path):
 				print('WARNING: Missing localization file %s' % wxl_path)
 				continue
+			temp_msi = '%s-%s-temp.msi' % (self.basename, language['culture'])
 			mst_file = '%s-%s.mst' % (self.basename, language['culture'])
-			torch_cmd = [
-				os.path.join(wixdir, 'torch'),
-				'-p', self.final_output,
-				'-t', mst_file,
-				self.main_o,
-				'-cultures:' + language['culture'],
-				'-loc', wxl_path,
+			subprocess.check_call([
+				light,
 				'-ext', 'WixUIExtension',
 				'-dWixUILicenseRtf=' + self.license_file,
-			]
-			subprocess.check_call(torch_cmd)
+				'-out', temp_msi,
+				'-cultures:' + language['culture'],
+				'-loc', wxl_path,
+				self.main_o,
+			])
+			subprocess.check_call([
+				torch,
+				'-p', '-t', 'language',
+				self.final_output, temp_msi,
+				'-out', mst_file,
+			])
 			subprocess.check_call([
 				'cscript', '//Nologo',
 				os.path.join(wixdir, 'WiLangId.vbs'),
@@ -159,6 +166,7 @@ class PackageGenerator:
 				os.path.join(wixdir, 'WiSubStg.vbs'),
 				self.final_output, self.final_output, mst_file, str(language['lcid']),
 			])
+			os.remove(temp_msi)
 			os.remove(mst_file)
 
 	def generate_files(self):
