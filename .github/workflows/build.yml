@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      msi_version: ${{ steps.version.outputs.msi_version }}
     steps:
       - name: Resolve version
         id: version
@@ -40,8 +41,26 @@ jobs:
             exit 1
           fi
 
+          if [[ "$VERSION" =~ ^0\.0\.0-dev\.([0-9]+)$ ]]; then
+            MSI_VERSION="0.0.0.${BASH_REMATCH[1]}"
+          else
+            BASE="${VERSION%%+*}"
+            BASE="${BASE%%-*}"
+            IFS='.' read -r -a PARTS <<< "$BASE"
+            while [ "${#PARTS[@]}" -lt 4 ]; do
+              PARTS+=("0")
+            done
+            MSI_VERSION="${PARTS[0]}.${PARTS[1]}.${PARTS[2]}.${PARTS[3]}"
+          fi
+
+          if ! echo "$MSI_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Invalid MSI version: $MSI_VERSION" >&2
+            exit 1
+          fi
+
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building version $VERSION"
+          echo "msi_version=$MSI_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building version $VERSION (MSI: $MSI_VERSION)"
 
   build-windows:
     needs: prepare
@@ -64,7 +83,7 @@ jobs:
       - name: Write package metadata
         shell: python
         env:
-          VERSION: ${{ needs.prepare.outputs.version }}
+          VERSION: ${{ needs.prepare.outputs.msi_version }}
         run: |
           import json
           import os
