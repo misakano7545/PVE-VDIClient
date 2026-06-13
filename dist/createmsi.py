@@ -130,10 +130,18 @@ class PackageGenerator:
 			print('WARNING: Missing localization file %s' % wxl_path)
 		return args
 
+	def _msi_script_path(self, name):
+		return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'msi', 'scripts', name)
+
+	def _package_language_list(self, through_index):
+		return ','.join(str(language['lcid']) for language in self.languages[:through_index + 1])
+
 	def _embed_language_transforms(self, wixdir):
 		light = os.path.join(wixdir, 'light')
 		torch = os.path.join(wixdir, 'torch')
-		for language in self.languages[1:]:
+		wilangid = self._msi_script_path('WiLangId.vbs')
+		wisubstg = self._msi_script_path('WiSubStg.vbs')
+		for index, language in enumerate(self.languages[1:], start=1):
 			wxl_path = self._wxl_path(language['culture'])
 			if not os.path.isfile(wxl_path):
 				print('WARNING: Missing localization file %s' % wxl_path)
@@ -156,15 +164,12 @@ class PackageGenerator:
 				'-out', mst_file,
 			])
 			subprocess.check_call([
-				'cscript', '//Nologo',
-				os.path.join(wixdir, 'WiLangId.vbs'),
-				self.final_output, 'Product', self.final_output,
-				str(language['lcid']), str(language['codepage']),
+				'cscript', '//Nologo', wisubstg,
+				self.final_output, mst_file, str(language['lcid']),
 			])
 			subprocess.check_call([
-				'cscript', '//Nologo',
-				os.path.join(wixdir, 'WiSubStg.vbs'),
-				self.final_output, self.final_output, mst_file, str(language['lcid']),
+				'cscript', '//Nologo', wilangid,
+				self.final_output, 'Package', self._package_language_list(index),
 			])
 			os.remove(temp_msi)
 			os.remove(mst_file)
