@@ -114,6 +114,7 @@ jobs:
           pyinstaller
           --noconsole
           --noconfirm
+          --name vdiclient
           --hidden-import proxmoxer.backends
           --hidden-import proxmoxer.backends.https
           --hidden-import proxmoxer.backends.https.AuthenticationError
