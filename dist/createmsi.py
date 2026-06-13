@@ -188,6 +188,11 @@ class PackageGenerator:
 			os.remove(temp_msi)
 			os.remove(mst_file)
 
+	def _media_cabinet_name(self):
+		# MSI cabinet names must not contain path separators or hyphens (ICE03).
+		cabinet_base = self.basename.replace('-', '_').replace('\\', '_').replace('/', '_')
+		return cabinet_base + '.cab'
+
 	def generate_files(self):
 		self.root = ET.Element('Wix', {'xmlns': 'http://schemas.microsoft.com/wix/2006/wi'})
 		product = ET.SubElement(self.root, 'Product', {
@@ -227,7 +232,7 @@ class PackageGenerator:
 			package.set('Platform', 'x64')
 		ET.SubElement(product, 'Media', {
 			'Id': '1',
-			'Cabinet': self.basename + '.cab',
+			'Cabinet': self._media_cabinet_name(),
 			'CompressionLevel': 'high',
 			'EmbedCab': 'yes',
 		})
