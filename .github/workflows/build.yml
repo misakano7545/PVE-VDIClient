@@ -136,8 +136,16 @@ jobs:
           Copy-Item vdiclient.png dist\vdiclient\
           Copy-Item vdiicon.ico dist\vdiclient\
 
-      - name: Install WiX Toolset
-        run: choco install wixtoolset --version=3.14.0.6526 -y --no-progress
+      - name: Ensure WiX Toolset
+        shell: pwsh
+        run: |
+          $wixPaths = @(
+            'C:\Program Files (x86)\Wix Toolset v3.14\bin\candle.exe',
+            'C:\Program Files\Wix Toolset v3.14\bin\candle.exe'
+          )
+          if (-not ($wixPaths | Where-Object { Test-Path $_ })) {
+            choco install wixtoolset -y --no-progress
+          }
 
       - name: Build MSI
         working-directory: dist
