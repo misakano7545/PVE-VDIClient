@@ -27,7 +27,7 @@ DEFAULT_LANGUAGES = [
 ]
 
 FEATURE_LOC_KEYS = {
-	'MainProgram': ('FeatureMainProgramTitle', 'FeatureMainProgramDescription'),
+	'MainProgram': ('VDI_FeatureMainProgramTitle', 'VDI_FeatureMainProgramDescription'),
 }
 
 def gen_guid():
@@ -131,8 +131,8 @@ class PackageGenerator:
 	def generate_files(self):
 		self.root = ET.Element('Wix', {'xmlns': 'http://schemas.microsoft.com/wix/2006/wi'})
 		product = ET.SubElement(self.root, 'Product', {
-			'Name': loc('ProductName'),
-			'Manufacturer': loc('Manufacturer'),
+			'Name': loc('VDI_ProductName'),
+			'Manufacturer': loc('VDI_Manufacturer'),
 			'Id': self.guid,
 			'UpgradeCode': self.upgrade_guid,
 			'Language': str(self.primary_language['lcid']),
@@ -143,9 +143,9 @@ class PackageGenerator:
 		package = ET.SubElement(product, 'Package',  {
 			'Id': '*',
 			'Keywords': 'Installer',
-			'Description': loc('PackageDescription'),
-			'Comments': loc('PackageComments'),
-			'Manufacturer': loc('Manufacturer'),
+			'Description': loc('VDI_PackageDescription'),
+			'Comments': loc('VDI_PackageComments'),
+			'Manufacturer': loc('VDI_Manufacturer'),
 			'InstallerVersion': '500',
 			'Languages': self._language_lcids(),
 			'Compressed': 'yes',
@@ -155,14 +155,14 @@ class PackageGenerator:
 
 		if self.major_upgrade is not None:
 			majorupgrade = ET.SubElement(product, 'MajorUpgrade', {
-				'DowngradeErrorMessage': loc('DowngradeErrorMessage'),
+				'DowngradeErrorMessage': loc('VDI_DowngradeErrorMessage'),
 			})
 			for mkey in self.major_upgrade.keys():
 				if mkey == 'DowngradeErrorMessage':
 					continue
 				majorupgrade.set(mkey, self.major_upgrade[mkey])
 		else:
-			ET.SubElement(product, 'MajorUpgrade', {'DowngradeErrorMessage': loc('DowngradeErrorMessage')})
+			ET.SubElement(product, 'MajorUpgrade', {'DowngradeErrorMessage': loc('VDI_DowngradeErrorMessage')})
 		if self.arch == 64:
 			package.set('Platform', 'x64')
 		ET.SubElement(product, 'Media', {
@@ -182,7 +182,7 @@ class PackageGenerator:
 		if self.startmenu_shortcut is not None:
 			ET.SubElement(pmf, 'Directory', {
 				'Id': 'ApplicationProgramsFolder',
-				'Name': loc('ProductName'),
+				'Name': loc('VDI_ProductName'),
 			})
 		if self.desktop_shortcut is not None:
 			ET.SubElement(pmf, 'Directory', {'Id': 'DesktopFolder',
@@ -206,8 +206,8 @@ class PackageGenerator:
 												   'Guid': gen_guid(),
 												   })
 			ET.SubElement(comp, 'Shortcut', {'Id': 'ApplicationStartMenuShortcut',
-											 'Name': loc('ProductName'),
-											 'Description': loc('ShortcutDescription'),
+											 'Name': loc('VDI_ProductName'),
+											 'Description': loc('VDI_ShortcutDescription'),
 											 'Target': '[INSTALLDIR]' + self.startmenu_shortcut,
 											 'WorkingDirectory': 'INSTALLDIR',
 			})
@@ -228,8 +228,8 @@ class PackageGenerator:
 													 'Guid': gen_guid(),
 													 })
 			ET.SubElement(comp, 'Shortcut', {'Id': 'ApplicationDesktopShortcut',
-											 'Name': loc('ProductName'),
-											 'Description': loc('ShortcutDescription'),
+											 'Name': loc('VDI_ProductName'),
+											 'Description': loc('VDI_ShortcutDescription'),
 											 'Target': '[INSTALLDIR]' + self.desktop_shortcut,
 											 'WorkingDirectory': 'INSTALLDIR',
 			})
@@ -256,8 +256,8 @@ class PackageGenerator:
 
 		top_feature = ET.SubElement(product, 'Feature', {
 			'Id': 'Complete',
-			'Title': loc('FeatureCompleteTitle'),
-			'Description': loc('FeatureCompleteDescription'),
+			'Title': loc('VDI_FeatureCompleteTitle'),
+			'Description': loc('VDI_FeatureCompleteDescription'),
 			'Display': 'expand',
 			'Level': '1',
 			'ConfigurableDirectory': 'INSTALLDIR',

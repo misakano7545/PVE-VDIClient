@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <WixLocalization Culture="zh-cn" Codepage="936" xmlns="http://schemas.microsoft.com/wix/2006/localization">
-	<String Id="ProductName">VDI 客户端</String>
-	<String Id="Manufacturer">Josh Patten</String>
-	<String Id="PackageDescription">VDI 客户端 [ProductVersion] 安装程序</String>
-	<String Id="PackageComments">这是 Proxmox VDI 客户端。请先单独安装 virt-viewer。</String>
-	<String Id="ShortcutDescription">Proxmox VDI 客户端</String>
-	<String Id="FeatureCompleteTitle">VDI 客户端 [ProductVersion]</String>
-	<String Id="FeatureCompleteDescription">完整安装包</String>
-	<String Id="FeatureMainProgramTitle">VDI 客户端</String>
-	<String Id="FeatureMainProgramDescription">Proxmox VDI 客户端</String>
-	<String Id="DowngradeErrorMessage">已安装更新版本的 [ProductName]。</String>
+	<String Id="VDI_ProductName">VDI 客户端</String>
+	<String Id="VDI_Manufacturer">Josh Patten</String>
+	<String Id="VDI_PackageDescription">VDI 客户端 [ProductVersion] 安装程序</String>
+	<String Id="VDI_PackageComments">这是 Proxmox VDI 客户端。请先单独安装 virt-viewer。</String>
+	<String Id="VDI_ShortcutDescription">Proxmox VDI 客户端</String>
+	<String Id="VDI_FeatureCompleteTitle">VDI 客户端 [ProductVersion]</String>
+	<String Id="VDI_FeatureCompleteDescription">完整安装包</String>
+	<String Id="VDI_FeatureMainProgramTitle">VDI 客户端</String>
+	<String Id="VDI_FeatureMainProgramDescription">Proxmox VDI 客户端</String>
+	<String Id="VDI_DowngradeErrorMessage">已安装更新版本的 [ProductName]。</String>
 </WixLocalization>
