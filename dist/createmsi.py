@@ -397,8 +397,7 @@ class PackageGenerator:
 			print("ERROR: This script requires WIX")
 			sys.exit(1)
 		if platform.system() == "Windows":
-			loc_args = self._loc_file_args()
-			subprocess.check_call([os.path.join(wixdir, 'candle')] + loc_args + [self.main_xml])
+			subprocess.check_call([os.path.join(wixdir, 'candle'), self.main_xml])
 			light_cmd = [
 				os.path.join(wixdir, 'light'),
 				'-ext', 'WixUIExtension',
