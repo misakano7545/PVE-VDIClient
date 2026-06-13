@@ -115,8 +115,8 @@ class PackageGenerator:
 	def _language_lcids(self):
 		return ','.join(str(language['lcid']) for language in self.languages)
 
-	def _light_localization_args(self):
-		args = ['-cultures:' + ';'.join(language['culture'] for language in self.languages)]
+	def _loc_file_args(self):
+		args = []
 		for language in self.languages:
 			wxl_path = os.path.join(self._loc_dir(), language['culture'] + '.wxl')
 			if os.path.isfile(wxl_path):
@@ -124,6 +124,9 @@ class PackageGenerator:
 			else:
 				print('WARNING: Missing localization file %s' % wxl_path)
 		return args
+
+	def _light_localization_args(self):
+		return ['-cultures:' + ';'.join(language['culture'] for language in self.languages)] + self._loc_file_args()
 
 	def generate_files(self):
 		self.root = ET.Element('Wix', {'xmlns': 'http://schemas.microsoft.com/wix/2006/wi'})
@@ -151,12 +154,13 @@ class PackageGenerator:
 		})
 
 		if self.major_upgrade is not None:
-			majorupgrade = ET.SubElement(product, 'MajorUpgrade', {})
+			majorupgrade = ET.SubElement(product, 'MajorUpgrade', {
+				'DowngradeErrorMessage': loc('DowngradeErrorMessage'),
+			})
 			for mkey in self.major_upgrade.keys():
-				value = self.major_upgrade[mkey]
 				if mkey == 'DowngradeErrorMessage':
-					value = loc('DowngradeErrorMessage')
-				majorupgrade.set(mkey, value)
+					continue
+				majorupgrade.set(mkey, self.major_upgrade[mkey])
 		else:
 			ET.SubElement(product, 'MajorUpgrade', {'DowngradeErrorMessage': loc('DowngradeErrorMessage')})
 		if self.arch == 64:
@@ -393,7 +397,8 @@ class PackageGenerator:
 			print("ERROR: This script requires WIX")
 			sys.exit(1)
 		if platform.system() == "Windows":
-			subprocess.check_call([os.path.join(wixdir, 'candle'), self.main_xml])
+			loc_args = self._loc_file_args()
+			subprocess.check_call([os.path.join(wixdir, 'candle')] + loc_args + [self.main_xml])
 			light_cmd = [
 				os.path.join(wixdir, 'light'),
 				'-ext', 'WixUIExtension',
