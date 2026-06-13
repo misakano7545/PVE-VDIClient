@@ -83,7 +83,7 @@ jobs:
       - name: Write package metadata
         env:
           MSI_VERSION: ${{ needs.prepare.outputs.msi_version }}
-        run: python scripts/write_msi_metadata.py --variant default
+        run: python dist/createmsi.py --write-metadata --variant default
 
       - name: Build executable with PyInstaller
         run: >
@@ -155,7 +155,7 @@ jobs:
       - name: Write package metadata
         env:
           MSI_VERSION: ${{ needs.prepare.outputs.msi_version }}
-        run: python scripts/write_msi_metadata.py --variant win7
+        run: python dist/createmsi.py --write-metadata --variant win7
 
       - name: Build executable with PyInstaller
         run: >

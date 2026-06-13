@@ -14,12 +14,67 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import sys, os, subprocess, shutil, uuid, json
 from glob import glob
 import platform
 import xml.etree.ElementTree as ET
 
 sys.path.append(os.getcwd())
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+METADATA_COMMON = {
+	'manufacturer': 'Josh Patten',
+	'arch': 64,
+	'installdir': 'VDIClient',
+	'installscope': 'perMachine',
+	'license_file': 'License.rtf',
+	'startmenu_shortcut': 'vdiclient.exe',
+	'desktop_shortcut': 'vdiclient.exe',
+	'parts': [
+		{
+			'id': 'MainProgram',
+			'title': 'VDI Client',
+			'description': 'Proxmox VDI Client',
+			'absent': 'disallow',
+			'staged_dir': 'vdiclient',
+		}
+	],
+	'major_upgrade': {
+		'Schedule': 'afterInstallInitialize',
+		'AllowSameVersionUpgrades': 'yes',
+	},
+	'languages': [
+		{'culture': 'en-us', 'lcid': 1033, 'codepage': 1252},
+		{'culture': 'zh-cn', 'lcid': 2052, 'codepage': 936},
+	],
+}
+
+METADATA_VARIANTS = {
+	'default': {
+		'upgrade_guid': '46cbad92-353e-4b28-9bee-83950991dad8',
+		'product_name': 'VDI Client',
+		'name': 'VDI Client',
+		'name_base': 'vdiclient',
+		'comments': (
+			'This is the Proxmox VDI client. '
+			'This client interfaces with Proxmox requires that virt-viewer be installed.'
+		),
+		'json_file': 'vdiclient.json',
+	},
+	'win7': {
+		'upgrade_guid': 'f7e8d9c0-b1a2-4c3d-8e7f-6a5b4c3d2e1f',
+		'product_name': 'VDI Client (Windows 7)',
+		'name': 'VDI Client (Windows 7)',
+		'name_base': 'vdiclient-win7',
+		'comments': (
+			'Legacy Proxmox VDI client build for Windows 7 SP1 (64-bit). '
+			'Requires virt-viewer, KB2533623, and TLS 1.2 updates.'
+		),
+		'json_file': 'vdiclient-win7.json',
+	},
+}
 
 DEFAULT_LANGUAGES = [
 	{'culture': 'en-us', 'lcid': 1033, 'codepage': 1252},
@@ -474,15 +529,62 @@ class PackageGenerator:
 		else:
 			subprocess.check_call([os.path.join(wixdir, 'wixl'), '-o', self.final_output, self.main_xml])
 
-def run(args):
-	if len(args) != 1:
-		sys.exit('createmsi.py <msi definition json>')
-	jsonfile = args[0]
+def write_metadata(variant, version):
+	variant_data = METADATA_VARIANTS[variant]
+	metadata = {
+		**METADATA_COMMON,
+		**{k: v for k, v in variant_data.items() if k != 'json_file'},
+		'version': version,
+	}
+	output = os.path.join(SCRIPT_DIR, variant_data['json_file'])
+	with open(output, 'w', encoding='utf-8') as handle:
+		handle.write(json.dumps(metadata, indent='\t') + '\n')
+	print('Wrote %s' % output)
+	return output
+
+
+def build_from_json(jsonfile):
 	if '/' in jsonfile or '\\' in jsonfile:
 		sys.exit('Input file %s must not contain a path segment.' % jsonfile)
 	p = PackageGenerator(jsonfile)
 	p.generate_files()
 	p.build_package()
 
+
+def main():
+	parser = argparse.ArgumentParser(description='Build VDI Client MSI packages.')
+	parser.add_argument(
+		'jsonfile',
+		nargs='?',
+		help='MSI definition json (e.g. vdiclient.json)',
+	)
+	parser.add_argument(
+		'--write-metadata',
+		action='store_true',
+		help='Write MSI definition json for the selected variant',
+	)
+	parser.add_argument(
+		'--variant',
+		choices=sorted(METADATA_VARIANTS),
+		default='default',
+		help='Package variant when using --write-metadata (default: default)',
+	)
+	parser.add_argument(
+		'--version',
+		default=os.environ.get('MSI_VERSION', '0.0.0.0'),
+		help='Four-part MSI version for --write-metadata (default: MSI_VERSION env or 0.0.0.0)',
+	)
+	args = parser.parse_args()
+
+	if args.write_metadata:
+		write_metadata(args.variant, args.version)
+		return
+
+	if not args.jsonfile:
+		parser.error('jsonfile is required unless --write-metadata is set')
+
+	build_from_json(args.jsonfile)
+
+
 if __name__ == '__main__':
-	run(sys.argv[1:])
+	main()
