@@ -115,18 +115,51 @@ class PackageGenerator:
 	def _language_lcids(self):
 		return ','.join(str(language['lcid']) for language in self.languages)
 
-	def _loc_file_args(self):
-		args = []
-		for language in self.languages:
-			wxl_path = os.path.join(self._loc_dir(), language['culture'] + '.wxl')
-			if os.path.isfile(wxl_path):
-				args.extend(['-loc', wxl_path])
-			else:
-				print('WARNING: Missing localization file %s' % wxl_path)
-		return args
+	def _wxl_path(self, culture):
+		return os.path.join(self._loc_dir(), culture + '.wxl')
 
 	def _light_localization_args(self):
-		return ['-cultures:' + ';'.join(language['culture'] for language in self.languages)] + self._loc_file_args()
+		# Link only the primary culture here. Additional languages are embedded
+		# as MST transforms; passing multiple -loc files to light causes LGHT0100.
+		language = self.primary_language
+		args = ['-cultures:' + language['culture']]
+		wxl_path = self._wxl_path(language['culture'])
+		if os.path.isfile(wxl_path):
+			args.extend(['-loc', wxl_path])
+		else:
+			print('WARNING: Missing localization file %s' % wxl_path)
+		return args
+
+	def _embed_language_transforms(self, wixdir):
+		for language in self.languages[1:]:
+			wxl_path = self._wxl_path(language['culture'])
+			if not os.path.isfile(wxl_path):
+				print('WARNING: Missing localization file %s' % wxl_path)
+				continue
+			mst_file = '%s-%s.mst' % (self.basename, language['culture'])
+			torch_cmd = [
+				os.path.join(wixdir, 'torch'),
+				'-p', self.final_output,
+				'-t', mst_file,
+				self.main_o,
+				'-cultures:' + language['culture'],
+				'-loc', wxl_path,
+				'-ext', 'WixUIExtension',
+				'-dWixUILicenseRtf=' + self.license_file,
+			]
+			subprocess.check_call(torch_cmd)
+			subprocess.check_call([
+				'cscript', '//Nologo',
+				os.path.join(wixdir, 'WiLangId.vbs'),
+				self.final_output, 'Product', self.final_output,
+				str(language['lcid']), str(language['codepage']),
+			])
+			subprocess.check_call([
+				'cscript', '//Nologo',
+				os.path.join(wixdir, 'WiSubStg.vbs'),
+				self.final_output, self.final_output, mst_file, str(language['lcid']),
+			])
+			os.remove(mst_file)
 
 	def generate_files(self):
 		self.root = ET.Element('Wix', {'xmlns': 'http://schemas.microsoft.com/wix/2006/wi'})
@@ -405,6 +438,7 @@ class PackageGenerator:
 				'-out', self.final_output,
 			] + self._light_localization_args() + [self.main_o]
 			subprocess.check_call(light_cmd)
+			self._embed_language_transforms(wixdir)
 		else:
 			subprocess.check_call([os.path.join(wixdir, 'wixl'), '-o', self.final_output, self.main_xml])
 
