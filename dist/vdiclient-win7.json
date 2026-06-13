@@ -1,0 +1,40 @@
+{
+	"manufacturer": "Josh Patten",
+	"arch": 64,
+	"installdir": "VDIClient",
+	"installscope": "perMachine",
+	"license_file": "License.rtf",
+	"startmenu_shortcut": "vdiclient.exe",
+	"desktop_shortcut": "vdiclient.exe",
+	"parts": [
+		{
+			"id": "MainProgram",
+			"title": "VDI Client",
+			"description": "Proxmox VDI Client",
+			"absent": "disallow",
+			"staged_dir": "vdiclient"
+		}
+	],
+	"major_upgrade": {
+		"Schedule": "afterInstallInitialize",
+		"AllowSameVersionUpgrades": "yes"
+	},
+	"languages": [
+		{
+			"culture": "en-us",
+			"lcid": 1033,
+			"codepage": 1252
+		},
+		{
+			"culture": "zh-cn",
+			"lcid": 2052,
+			"codepage": 936
+		}
+	],
+	"upgrade_guid": "f7e8d9c0-b1a2-4c3d-8e7f-6a5b4c3d2e1f",
+	"product_name": "VDI Client (Windows 7)",
+	"name": "VDI Client (Windows 7)",
+	"name_base": "vdiclient-win7",
+	"comments": "Legacy Proxmox VDI client build for Windows 7 SP1 (64-bit). Requires virt-viewer, KB2533623, and TLS 1.2 updates.",
+	"version": "1.0.0.0"
+}
