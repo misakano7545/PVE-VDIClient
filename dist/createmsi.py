@@ -118,12 +118,26 @@ class PackageGenerator:
 	def _wxl_path(self, culture):
 		return os.path.join(self._loc_dir(), culture + '.wxl')
 
+	def _resolved_wxl_path(self, culture):
+		# Feature table titles do not expand [Property] at install time; bake the
+		# product version into wxl strings when building the MSI.
+		source = self._wxl_path(culture)
+		if not os.path.isfile(source):
+			return source
+		build_dir = os.path.join(self._loc_dir(), '.build')
+		os.makedirs(build_dir, exist_ok=True)
+		resolved = os.path.join(build_dir, culture + '.wxl')
+		content = open(source, encoding='utf-8').read()
+		content = content.replace('[ProductVersion]', self.version)
+		open(resolved, 'w', encoding='utf-8').write(content)
+		return resolved
+
 	def _light_localization_args(self):
 		# Link only the primary culture here. Additional languages are embedded
 		# as MST transforms; passing multiple -loc files to light causes LGHT0100.
 		language = self.primary_language
 		args = ['-cultures:' + language['culture']]
-		wxl_path = self._wxl_path(language['culture'])
+		wxl_path = self._resolved_wxl_path(language['culture'])
 		if os.path.isfile(wxl_path):
 			args.extend(['-loc', wxl_path])
 		else:
@@ -142,7 +156,7 @@ class PackageGenerator:
 		wilangid = self._msi_script_path('WiLangId.vbs')
 		wisubstg = self._msi_script_path('WiSubStg.vbs')
 		for index, language in enumerate(self.languages[1:], start=1):
-			wxl_path = self._wxl_path(language['culture'])
+			wxl_path = self._resolved_wxl_path(language['culture'])
 			if not os.path.isfile(wxl_path):
 				print('WARNING: Missing localization file %s' % wxl_path)
 				continue

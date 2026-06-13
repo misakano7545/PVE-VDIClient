@@ -5,6 +5,7 @@
 /dist/*.wixobj
 /dist/*.wxs
 /dist/*.wixpdb
+/dist/msi/locales/.build/
 **/__pycache__
 vdiclient.spec
 
