@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-us" Codepage="1252" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+	<String Id="ProductName">VDI Client</String>
+	<String Id="Manufacturer">Josh Patten</String>
+	<String Id="PackageDescription">VDI Client [ProductVersion] installer</String>
+	<String Id="PackageComments">This is the Proxmox VDI client. virt-viewer must be installed separately.</String>
+	<String Id="ShortcutDescription">Proxmox VDI Client</String>
+	<String Id="FeatureCompleteTitle">VDI Client [ProductVersion]</String>
+	<String Id="FeatureCompleteDescription">The complete package</String>
+	<String Id="FeatureMainProgramTitle">VDI Client</String>
+	<String Id="FeatureMainProgramDescription">Proxmox VDI Client</String>
+	<String Id="DowngradeErrorMessage">A later version of [ProductName] is already installed.</String>
+</WixLocalization>

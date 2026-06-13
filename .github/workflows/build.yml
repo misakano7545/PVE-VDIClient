@@ -117,9 +117,12 @@ jobs:
               ],
               "major_upgrade": {
                   "Schedule": "afterInstallInitialize",
-                  "DowngradeErrorMessage": "A later version of [ProductName] is already installed",
                   "AllowSameVersionUpgrades": "yes",
               },
+              "languages": [
+                  {"culture": "en-us", "lcid": 1033, "codepage": 1252},
+                  {"culture": "zh-cn", "lcid": 2052, "codepage": 936},
+              ],
           }
 
           Path("dist").mkdir(exist_ok=True)

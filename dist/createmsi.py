@@ -21,8 +21,20 @@ import xml.etree.ElementTree as ET
 
 sys.path.append(os.getcwd())
 
+DEFAULT_LANGUAGES = [
+	{'culture': 'en-us', 'lcid': 1033, 'codepage': 1252},
+	{'culture': 'zh-cn', 'lcid': 2052, 'codepage': 936},
+]
+
+FEATURE_LOC_KEYS = {
+	'MainProgram': ('FeatureMainProgramTitle', 'FeatureMainProgramDescription'),
+}
+
 def gen_guid():
 	return str(uuid.uuid4()).upper()
+
+def loc(string_id):
+	return '!(loc.%s)' % string_id
 
 class Node:
 	def __init__(self, dirs, files):
@@ -86,40 +98,67 @@ class PackageGenerator:
 		self.registry_entries = jsondata.get('registry_entries', None)
 		self.major_upgrade = jsondata.get('major_upgrade', None)
 		self.parts = jsondata['parts']
+		self.languages = jsondata.get('languages', DEFAULT_LANGUAGES)
+		self.primary_language = self.languages[0]
 		self.feature_components = {}
 		self.feature_properties = {}
+
+	def _feature_loc_keys(self, feature_id):
+		return FEATURE_LOC_KEYS.get(
+			feature_id,
+			('Feature%sTitle' % feature_id, 'Feature%sDescription' % feature_id),
+		)
+
+	def _loc_dir(self):
+		return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'msi', 'locales')
+
+	def _language_lcids(self):
+		return ','.join(str(language['lcid']) for language in self.languages)
+
+	def _light_localization_args(self):
+		args = ['-cultures:' + ';'.join(language['culture'] for language in self.languages)]
+		for language in self.languages:
+			wxl_path = os.path.join(self._loc_dir(), language['culture'] + '.wxl')
+			if os.path.isfile(wxl_path):
+				args.extend(['-loc', wxl_path])
+			else:
+				print('WARNING: Missing localization file %s' % wxl_path)
+		return args
 
 	def generate_files(self):
 		self.root = ET.Element('Wix', {'xmlns': 'http://schemas.microsoft.com/wix/2006/wi'})
 		product = ET.SubElement(self.root, 'Product', {
-			'Name': self.product_name,
-			'Manufacturer': self.manufacturer,
+			'Name': loc('ProductName'),
+			'Manufacturer': loc('Manufacturer'),
 			'Id': self.guid,
 			'UpgradeCode': self.upgrade_guid,
-			'Language': '1033',
-			'Codepage':  '1252',
+			'Language': str(self.primary_language['lcid']),
+			'Codepage': str(self.primary_language['codepage']),
 			'Version': self.version,
 		})
 			
 		package = ET.SubElement(product, 'Package',  {
 			'Id': '*',
 			'Keywords': 'Installer',
-			'Description': '%s %s installer' % (self.name, self.version),
-			'Comments': self.comments,
-			'Manufacturer': self.manufacturer,
+			'Description': loc('PackageDescription'),
+			'Comments': loc('PackageComments'),
+			'Manufacturer': loc('Manufacturer'),
 			'InstallerVersion': '500',
-			'Languages': '1033',
+			'Languages': self._language_lcids(),
 			'Compressed': 'yes',
-			'SummaryCodepage': '1252',
+			'SummaryCodepage': str(self.primary_language['codepage']),
 			'InstallScope': self.installscope,
 		})
 
 		if self.major_upgrade is not None:
 			majorupgrade = ET.SubElement(product, 'MajorUpgrade', {})
 			for mkey in self.major_upgrade.keys():
-				majorupgrade.set(mkey, self.major_upgrade[mkey])
+				value = self.major_upgrade[mkey]
+				if mkey == 'DowngradeErrorMessage':
+					value = loc('DowngradeErrorMessage')
+				majorupgrade.set(mkey, value)
 		else:
-			ET.SubElement(product, 'MajorUpgrade', {'DowngradeErrorMessage': 'A newer version of %s is already installed.' % self.name})
+			ET.SubElement(product, 'MajorUpgrade', {'DowngradeErrorMessage': loc('DowngradeErrorMessage')})
 		if self.arch == 64:
 			package.set('Platform', 'x64')
 		ET.SubElement(product, 'Media', {
@@ -139,7 +178,7 @@ class PackageGenerator:
 		if self.startmenu_shortcut is not None:
 			ET.SubElement(pmf, 'Directory', {
 				'Id': 'ApplicationProgramsFolder',
-				'Name': self.product_name,
+				'Name': loc('ProductName'),
 			})
 		if self.desktop_shortcut is not None:
 			ET.SubElement(pmf, 'Directory', {'Id': 'DesktopFolder',
@@ -163,8 +202,8 @@ class PackageGenerator:
 												   'Guid': gen_guid(),
 												   })
 			ET.SubElement(comp, 'Shortcut', {'Id': 'ApplicationStartMenuShortcut',
-											 'Name': self.product_name,
-											 'Description': self.comments,
+											 'Name': loc('ProductName'),
+											 'Description': loc('ShortcutDescription'),
 											 'Target': '[INSTALLDIR]' + self.startmenu_shortcut,
 											 'WorkingDirectory': 'INSTALLDIR',
 			})
@@ -185,8 +224,8 @@ class PackageGenerator:
 													 'Guid': gen_guid(),
 													 })
 			ET.SubElement(comp, 'Shortcut', {'Id': 'ApplicationDesktopShortcut',
-											 'Name': self.product_name,
-											 'Description': self.comments,
+											 'Name': loc('ProductName'),
+											 'Description': loc('ShortcutDescription'),
 											 'Target': '[INSTALLDIR]' + self.desktop_shortcut,
 											 'WorkingDirectory': 'INSTALLDIR',
 			})
@@ -213,8 +252,8 @@ class PackageGenerator:
 
 		top_feature = ET.SubElement(product, 'Feature', {
 			'Id': 'Complete',
-			'Title': self.name + ' ' + self.version,
-			'Description': 'The complete package',
+			'Title': loc('FeatureCompleteTitle'),
+			'Description': loc('FeatureCompleteDescription'),
 			'Display': 'expand',
 			'Level': '1',
 			'ConfigurableDirectory': 'INSTALLDIR',
@@ -282,10 +321,11 @@ class PackageGenerator:
 			for root, dirs, files in os.walk(sd):
 				cur_node = Node(dirs, files)
 				nodes[root] = cur_node
+			title_key, description_key = self._feature_loc_keys(feature['id'])
 			fdict = {
 				'Id': feature['id'],
-				'Title': feature['title'],
-				'Description': feature['description'],
+				'Title': loc(title_key),
+				'Description': loc(description_key),
 				'Level': '1'
 			}
 			if feature.get('absent', 'ab') == 'disallow':
@@ -354,12 +394,13 @@ class PackageGenerator:
 			sys.exit(1)
 		if platform.system() == "Windows":
 			subprocess.check_call([os.path.join(wixdir, 'candle'), self.main_xml])
-			subprocess.check_call([os.path.join(wixdir, 'light'),
-								   '-ext', 'WixUIExtension',
-								   '-cultures:en-us',
-								   '-dWixUILicenseRtf=' + self.license_file,
-								   '-out', self.final_output,
-								   self.main_o])
+			light_cmd = [
+				os.path.join(wixdir, 'light'),
+				'-ext', 'WixUIExtension',
+				'-dWixUILicenseRtf=' + self.license_file,
+				'-out', self.final_output,
+			] + self._light_localization_args() + [self.main_o]
+			subprocess.check_call(light_cmd)
 		else:
 			subprocess.check_call([os.path.join(wixdir, 'wixl'), '-o', self.final_output, self.main_xml])
 
