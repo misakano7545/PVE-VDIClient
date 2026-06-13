@@ -66,13 +66,28 @@ Please visit the [releases](https://github.com/joshpatten/PVE-VDIClient/releases
 
 If you need to customize the installation, such as to sign the executable and MSI, you may download and install the [legacy WIX 3.14 toolset](https://github.com/wixtoolset/wix3/releases) and use the build_vdiclient.bat file to build a new MSI.
 
-you will need to download the latest Python 3.14 release, and run the following commands to install the necessary packages:
+For local builds, install Python 3.13 and dependencies, then run the MSI build script:
 
-    requirements.bat
-
-After installing requirements make any changes you need and run the MSI build script:
-
+    pip install -r requirements.txt
     build_vdiclient.bat
+
+### Windows 7 (legacy)
+
+Windows 7 SP1 (64-bit) is supported via a separate legacy build that uses Python 3.8. Download the `vdiclient-win7-*.msi` artifact or release asset (not the standard MSI).
+
+**System requirements on the target PC:**
+
+* Windows 7 SP1, 64-bit
+* [Update KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=46148) (required for Python 3.8)
+* TLS 1.2 enabled (install Windows updates such as KB3140245 so HTTPS to Proxmox works)
+* [virt-viewer](https://virt-manager.org/download.html) installed
+
+**Local build** (requires Python 3.8.x and WiX 3.14):
+
+    requirements_win7.bat
+    build_vdiclient_win7.bat
+
+Optional: set `MSI_VERSION=1.2.3.4` before building to override the default `0.0.0.0` version embedded in the MSI.
 
 ## Linux Installation
 

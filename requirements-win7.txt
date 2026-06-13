@@ -1,0 +1,9 @@
+# Legacy Windows 7 build (Python 3.8.x only). See README.md.
+proxmoxer==2.3.0
+customtkinter==5.2.2
+darkdetect==0.8.0
+requests==2.31.0
+urllib3==1.26.20
+certifi>=2023.7.22
+Pillow==9.5.0
+pyinstaller==5.13.2

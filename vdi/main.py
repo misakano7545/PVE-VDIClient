@@ -1,5 +1,11 @@
 """Application entry point and main loop."""
 
+import sys
+
+if sys.platform == 'win32' and sys.getwindowsversion().major == 6 and sys.getwindowsversion().minor == 1:
+	import customtkinter
+	customtkinter.deactivate_automatic_dpi_awareness()
+
 import argparse
 
 from vdi.config import loadconfig

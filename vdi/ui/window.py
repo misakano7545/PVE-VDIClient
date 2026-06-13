@@ -10,6 +10,17 @@ import tkinter as tk
 from vdi.state import G
 
 
+def _pil_resample():
+	from PIL import Image
+	if hasattr(Image, 'Resampling'):
+		return Image.Resampling.LANCZOS
+	return Image.ANTIALIAS
+
+
+def _resize_image(image, size):
+	return image.resize(size, _pil_resample())
+
+
 class VDIWindow(ctk.CTkToplevel):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -66,7 +77,7 @@ def load_image(path, for_ctk_label=False, size=None):
 			from PIL import Image
 			image = Image.open(path).convert("RGBA")
 			if size:
-				image = image.resize(size, Image.ANTIALIAS)
+				image = _resize_image(image, size)
 			return ctk.CTkImage(light_image=image, dark_image=image, size=image.size if size is None else size)
 		except Exception:
 			try:
@@ -77,7 +88,7 @@ def load_image(path, for_ctk_label=False, size=None):
 						from PIL import Image
 						image = Image.open(path).convert("RGBA")
 						if size:
-							image = image.resize(size, Image.ANTIALIAS)
+							image = _resize_image(image, size)
 						buf = BytesIO()
 						image.save(buf, format='PNG')
 						data = base64.b64encode(buf.getvalue()).decode('ascii')
@@ -93,7 +104,7 @@ def load_image(path, for_ctk_label=False, size=None):
 				from PIL import Image
 				image = Image.open(path).convert("RGBA")
 				if size:
-					image = image.resize(size, Image.ANTIALIAS)
+					image = _resize_image(image, size)
 				buf = BytesIO()
 				image.save(buf, format='PNG')
 				data = base64.b64encode(buf.getvalue()).decode('ascii')
