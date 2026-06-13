@@ -1,6 +1,8 @@
 [General]
 # This is the title that is diplayed to the user
 title = VDI Client
+# UI language: zh_CN (Chinese), en (English); default auto-detects from system locale
+#language = zh_CN
 # This is the customtkinter theme. Options are system, light, dark
 theme = dark
 # Program Icon

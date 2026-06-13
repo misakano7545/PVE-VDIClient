@@ -1,8 +1,12 @@
 **/build/
 **/dist/vdiclient
 /dist/*.msi
+/dist/*.deb
 /dist/*.wixobj
 /dist/*.wxs
 /dist/*.wixpdb
 **/__pycache__
 vdiclient.spec
+
+# Config File
+vdiclient.ini

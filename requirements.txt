@@ -1,0 +1,5 @@
+proxmoxer
+customtkinter
+requests
+pyinstaller
+pywin32; sys_platform == 'win32'
