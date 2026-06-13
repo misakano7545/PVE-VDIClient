@@ -1,0 +1,103 @@
+[General]
+# 显示给用户的窗口标题
+title = VDI Client
+# 界面语言：zh_CN（中文）、en（英文）；默认根据系统区域自动检测
+language = zh_CN
+# CustomTkinter 主题，可选：system、light、dark
+theme = dark
+# 程序图标
+icon = vdiicon.ico
+# 各窗口显示的 Logo
+logo = vdiclient.png
+# 启用 Kiosk 模式后，用户无法关闭任何窗口
+kiosk = False
+# 启用/禁用全屏模式（Kiosk 模式下不适用）
+fullscreen = True
+# 若 kiosk 为 true，可设为 false 以覆盖 remote_viewer 的 kiosk 模式
+#viewer_kiosk = False
+# 打开 virt-viewer 前显示 SPICE ini 文件（调试用）
+inidebug = False
+# 选择显示的 guest 类型，可选：both、lxc、qemu
+guest_type = both
+# 显示虚拟机重置选项
+#show_reset = True
+# 设置窗口尺寸，仅在窗口大小异常时使用
+#window_width = 800
+#window_height = 600
+# 虚拟机列表分页大小
+#page_size = 10
+# 无操作超时（分钟），默认为 0（不超时）
+#timeout = 15
+
+# PVE-VDIClient 支持多个集群。使用 Hosts. 开头的节定义集群，后缀名会显示给终端用户
+# 本示例为 Hosts.PVE，用户界面中将显示为 PVE
+[Hosts.PVE]
+# 集群内 Proxmox 服务器的 JSON 字典
+# 格式为 'IP/FQDN': 端口
+# 注意：请确保所有行都有缩进
+hostpool = {
+               "10.10.10.100" : 8006,
+               "10.10.10.111" : 8006,
+               "pve1.example.com" : 8006
+           }
+# 用于认证的后端
+auth_backend = pve
+# 启用后将显示 2FA TOTP 输入对话框
+auth_totp = false
+# 设为 false 时不校验 TLS 证书
+tls_verify = false
+# 用户名（使用 API Token 时）
+# 注意：若只定义一个集群，且设置了 user、token_name、token_value，将自动登录
+#user = user
+# API Token 名称
+#token_name = dvi
+# API Token 值
+#token_value = xxx-x-x-x-xxx
+# 密码重置命令，需为完整可执行命令
+#pwresetcmd = start chrome --app=http://pwreset.example.com
+# 认证成功后自动连接到指定 VMID
+#auto_vmid = 100
+
+# 额外的集群定义示例
+#[Hosts.PVE2]
+# 集群内 Proxmox 服务器的 JSON 字典
+# 格式为 'IP/FQDN': 端口
+#hostpool = {
+#               "10.10.10.100" : 8006,
+#               "10.10.10.111" : 8006,
+#               "pve1.example.com" : 8006
+#           }
+# 用于认证的后端
+#auth_backend = pve
+# 启用后将显示 2FA TOTP 输入对话框
+#auth_totp = false
+# 设为 false 时不校验 TLS 证书
+#tls_verify = false
+# 用户名（使用 API Token 时）
+# 注意：若只定义一个集群，且设置了 user、token_name、token_value，将自动登录
+#user = user
+# API Token 名称
+#token_name = dvi
+# API Token 值
+#token_value = xxx-x-x-x-xxx
+# 密码重置命令，需为完整可执行命令
+#pwresetcmd = start chrome --app=http://pwreset.example.com
+# 认证成功后自动连接到指定 VMID
+#auto_vmid = 100
+
+
+[SpiceProxyRedirect]
+# Proxmox API 返回的 SPICE 代理主机/端口可能需要重写
+# 重写规则格式为 `IP:端口 = IP:端口`
+# 1. 启用 inidebug，查看当前 proxy=pve1.example.com:3128
+# 2. 在右侧填入 Proxmox 实际 IP，例如 123.123.123.123:6000
+pve1.example.com:3128 = 123.123.123.123:6000
+
+#[AdditionalParameters]
+# 如需向 virt-viewer 传递额外参数，可在此定义
+# 更多参数说明：https://www.mankier.com/1/remote-viewer
+# 示例：
+# 启用 USB 重定向
+#enable-usbredir = true
+# 启用 USB 设备自动共享
+#enable-usb-autoshare = true
